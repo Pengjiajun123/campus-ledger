@@ -1,0 +1,17 @@
+:root {
+  --bg:       #FAF8F5;
+  --accent:   #D97757;
+  --text:     #1A1A1A;
+  --muted:    #4A4543;
+  --card-bg:  #FFFFFF;
+  --border:   #EDE9E4;
+  --danger:   #E05252;
+  --success:  #6AAF8B;
+
+  --radius:   12px;
+  --radius-sm: 8px;
+  --shadow:   0 2px 8px rgba(0,0,0,0.06);
+  --font:     'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  --tab-height: 56px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}

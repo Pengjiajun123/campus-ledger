@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CampusLedger — 大学生活费记账</title>
+  <!-- PWA & iOS -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#D97757">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="记账">
+  <link rel="apple-touch-icon" href="assets/icon.svg">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/charts.css">
+</head>
+<body>
+  <div id="app">
+    <!-- ===== 首页 Tab ===== -->
+    <section class="tab-page active" id="page-home">
+      <header class="top-bar">
+        <span class="top-bar__label">本月余额</span>
+        <span class="top-bar__amount" id="home-balance">¥ 0.00</span>
+      </header>
+      <div class="home-summary">
+        <div class="summary-card summary-card--income">
+          <span class="summary-card__label">本月入账</span>
+          <span class="summary-card__amount" id="home-income">¥ 0.00</span>
+        </div>
+        <div class="summary-card summary-card--expense">
+          <span class="summary-card__label">本月支出</span>
+          <span class="summary-card__amount" id="home-expense">¥ 0.00</span>
+        </div>
+      </div>
+      <div class="recent-section">
+        <h3 class="section-title">最近流水</h3>
+        <ul class="timeline" id="home-timeline"></ul>
+        <div class="empty-state" id="home-empty" style="display:none;">
+          <p>还没有记录，点击下方按钮开始记账吧</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 记录 Tab ===== -->
+    <section class="tab-page" id="page-records">
+      <header class="records-header">
+        <div class="records-tabs">
+          <button class="records-tab active" data-filter="expense">支出</button>
+          <button class="records-tab" data-filter="income">入账</button>
+        </div>
+      </header>
+      <div class="records-list" id="records-list"></div>
+      <div class="empty-state" id="records-empty" style="display:none;">
+        <p>暂无记录</p>
+      </div>
+    </section>
+
+    <!-- ===== 统计 Tab ===== -->
+    <section class="tab-page" id="page-stats">
+      <div class="month-switcher">
+        <button class="month-btn" id="month-prev">←</button>
+        <span class="month-label" id="month-label">2024年3月</span>
+        <button class="month-btn" id="month-next">→</button>
+      </div>
+      <div class="stats-card">
+        <h3 class="section-title">支出分类</h3>
+        <div class="chart-wrap">
+          <canvas id="chart-doughnut"></canvas>
+        </div>
+        <ul class="category-detail" id="category-detail"></ul>
+        <div class="empty-state" id="stats-pie-empty" style="display:none;">
+          <p>本月暂无支出数据</p>
+        </div>
+      </div>
+      <div class="stats-card">
+        <h3 class="section-title">近6个月支出趋势</h3>
+        <div class="chart-wrap chart-wrap--bar">
+          <canvas id="chart-bar"></canvas>
+        </div>
+      </div>
+      <div class="warning-banner" id="warning-banner" style="display:none;">
+        <span id="warning-text"></span>
+      </div>
+    </section>
+
+    <!-- ===== 悬浮记账按钮 ===== -->
+    <button class="fab" id="fab-add">+</button>
+
+    <!-- ===== 底部 Tab 导航 ===== -->
+    <nav class="tab-bar">
+      <button class="tab-bar__item active" data-tab="page-home">
+        <span class="tab-bar__icon">🏠</span>
+        <span class="tab-bar__text">首页</span>
+      </button>
+      <button class="tab-bar__item" data-tab="page-records">
+        <span class="tab-bar__icon">📋</span>
+        <span class="tab-bar__text">记录</span>
+      </button>
+      <button class="tab-bar__item" data-tab="page-stats">
+        <span class="tab-bar__icon">📊</span>
+        <span class="tab-bar__text">统计</span>
+      </button>
+    </nav>
+
+    <!-- ===== 记账弹窗 Modal ===== -->
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal" id="modal">
+        <div class="modal__header">
+          <span class="modal__title">记一笔</span>
+          <button class="modal__close" id="modal-close">×</button>
+        </div>
+        <div class="modal__body">
+          <div class="modal__amount-row">
+            <span class="modal__currency">¥</span>
+            <input type="number" class="modal__amount-input" id="input-amount" placeholder="0.00" step="0.01" min="0">
+          </div>
+          <div class="modal__type-switch">
+            <button class="type-btn active" data-type="expense">支出</button>
+            <button class="type-btn" data-type="income">入账</button>
+          </div>
+          <div class="modal__categories" id="category-grid"></div>
+          <div class="modal__field">
+            <label>备注</label>
+            <input type="text" id="input-note" placeholder="选填" maxlength="50">
+          </div>
+          <div class="modal__field">
+            <label>日期</label>
+            <input type="date" id="input-date">
+          </div>
+          <button class="btn-save" id="btn-save">确认保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 自定义分类弹窗 ===== -->
+    <div class="modal-overlay" id="custom-cat-overlay">
+      <div class="modal modal--small" id="custom-cat-modal">
+        <div class="modal__header">
+          <span class="modal__title">自定义分类</span>
+          <button class="modal__close" id="custom-cat-close">×</button>
+        </div>
+        <div class="modal__body">
+          <div class="modal__field">
+            <label>分类名称</label>
+            <input type="text" id="input-cat-name" placeholder="例如：奶茶" maxlength="10">
+          </div>
+          <div class="modal__field">
+            <label>选择图标</label>
+            <div class="emoji-picker" id="emoji-picker"></div>
+          </div>
+          <button class="btn-save" id="btn-save-cat">确认添加</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/records.js"></script>
+  <script src="js/stats.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

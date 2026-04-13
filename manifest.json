@@ -1,0 +1,17 @@
+{
+  "name": "CampusLedger",
+  "short_name": "记账",
+  "description": "大学生活费记账应用",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#FAF8F5",
+  "theme_color": "#D97757",
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
